@@ -75,7 +75,7 @@ public:
   /**
    * \brief Constructor
    */
-  MoveItTopp(ros::NodeHandle &nh, const moveit::core::JointModelGroup* jmg);
+  MoveItTopp(const ros::NodeHandle &nh, const moveit::core::JointModelGroup* jmg);
 
   /**
    * \brief Constructor

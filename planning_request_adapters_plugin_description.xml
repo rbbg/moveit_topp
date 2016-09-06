@@ -1,0 +1,8 @@
+<library path="lib/libtopp_planning_adapter">
+  <class name="topp_planning_adapter/AddTOPP" 
+    type="topp_planning_adapter::AddTOPP" 
+    base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+</library>

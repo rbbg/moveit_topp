@@ -30,6 +30,7 @@ catkin_package(
     ${PROJECT_NAME}_spline
     ${PROJECT_NAME}_spline_fitting
     ${PROJECT_NAME}_wrapper
+    topp_planning_adapter
 )
 
 ###########
@@ -93,6 +94,20 @@ target_link_libraries(${PROJECT_NAME}_wrapper
   ${catkin_LIBRARIES}
 )
 # --------------------------------------------
+
+
+# --------------------------------------------
+# TOPP planning adapter
+add_library(topp_planning_adapter
+  src/add_topp.cpp
+)
+target_link_libraries(topp_planning_adapter
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}_wrapper
+)
+
+# --------------------------------------------
+
 
 # Demo: Convert Piecewise Polynomial Trajectory to Time-Optimal Discretized Path
 add_executable(${PROJECT_NAME}_demo_pp_to_optimal
@@ -184,7 +199,15 @@ roslint_cpp()
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
+# Mark adapter for installation
+install(TARGETS topp_planning_adapter
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+install(FILES planning_request_adapters_plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 # Mark imported library for installation using a workaround since imported
 # targets do not have proper support for installation in CMakeLists
 install(FILES ${foo_LOCATION} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+

@@ -42,7 +42,7 @@
 namespace moveit_topp
 {
 
-MoveItTopp::MoveItTopp(ros::NodeHandle &nh, const moveit::core::JointModelGroup* jmg)
+MoveItTopp::MoveItTopp(const ros::NodeHandle &nh, const moveit::core::JointModelGroup* jmg)
   : nh_(nh)
   , jmg_(jmg)
 {
@@ -73,7 +73,7 @@ MoveItTopp::MoveItTopp(ros::NodeHandle &nh, const moveit::core::JointModelGroup*
   std::size_t error = 0;
   error += !rosparam_shortcuts::get(name_, rpnh, "debug/write_coeff_to_file", debug_write_coeff_to_file_);
   error += !rosparam_shortcuts::get(name_, rpnh, "debug/write_joint_traj_to_file", debug_write_joint_traj_to_file_);
-  rosparam_shortcuts::shutdownIfError(name_, error);
+  // rosparam_shortcuts::shutdownIfError(name_, error);
 
   init(vel_limits, acc_limits);
 }
@@ -138,6 +138,7 @@ void MoveItTopp::computeTimeStamps(robot_trajectory::RobotTrajectory& robot_traj
   TOPP::Trajectory orig_trajectory;
   spline_fitting_.getPPTrajectory(orig_trajectory);
 
+
   // Time-Optimize with respect to constraints
   TOPP::Trajectory new_trajectory;
   optimizeTrajectory(orig_trajectory, new_trajectory);
@@ -156,7 +157,6 @@ void MoveItTopp::computeTimeStamps(robot_trajectory::RobotTrajectory& robot_traj
 void MoveItTopp::convertMoveItTrajToPP(const robot_trajectory::RobotTrajectory& robot_traj)
 {
   // Populate joint_positions with robot trajectory
-
   // Resize
   ROS_INFO_STREAM_NAMED(name_, "Converting MoveIt! robot trajectory with " << jmg_->getVariableCount() << " dof");
   tmp_timestamps_.resize(robot_traj.getWayPointCount());
@@ -341,8 +341,14 @@ bool MoveItTopp::convertTrajToMoveItTraj(robot_trajectory::RobotTrajectory& robo
 
     // Copy to robot state
     state.setJointGroupPositions(jmg_, position);
-    state.setJointGroupVelocities(jmg_, velocity);
-    //state.setJointGroupAccelerations(jmg_, acceleration);
+
+    const std::vector<const moveit::core::JointModel*> jointModels = jmg_->getJointModels();
+
+    for (std::size_t i = 0; i < jointModels.size(); i++){
+    	state.setJointVelocities(jointModels[i], &velocity[i]);
+    }
+//    state.setJointGroupVelocities(jmg_, velocity);
+//    state.setJointGroupAccelerations(jmg_, acceleration);
 
     // Add state to trajectory
     robot_traj.addSuffixWayPoint(state, dt);
