@@ -58,9 +58,17 @@ MoveItTopp::MoveItTopp(const ros::NodeHandle &nh, const moveit::core::JointModel
     }
     const moveit::core::VariableBounds& bound = bounds.front();
     vel_limits.push_back(bound.max_velocity_);
-    acc_limits.push_back(bound.max_acceleration_);
-    //std::cout << "bound.max_velocity_: " << bound.max_velocity_ << std::endl;
-    //std::cout << "bound.max_acceleration_: " << bound.max_acceleration_ << std::endl;
+    
+    // Check if acceleration is bounded, otherwise use 1.0
+    // TODO(rbbg) have to account for scaling factor
+    if (bound.acceleration_bounded_)
+      acc_limits.push_back(bound.max_acceleration_);
+    else
+      ROS_WARN_STREAM_NAMED(name_, "No acceleration limit specfied, using 1.0");
+      acc_limits.push_back(1.0);
+
+    // std::cout << "bound.max_velocity_: " << bound.max_velocity_ << std::endl;
+    // std::cout << "bound.max_acceleration_: " << bound.max_acceleration_ << std::endl;
   }
 
   // Resize datastructures for convertMoveItTrajToPP()
@@ -174,7 +182,7 @@ void MoveItTopp::convertMoveItTrajToPP(const robot_trajectory::RobotTrajectory& 
       tmp_joint_positions_[joint_id][i] = tmp_jmg_positions_[joint_id];
     }
 
-    tmp_timestamps_[i] = i + 1.0; // dummy value TODO(davetcoleman): is this ok?
+    tmp_timestamps_[i] = i + 10.0; // dummy value TODO(davetcoleman): is this ok?
   }
 
   // Setup Spline Fitting
@@ -341,18 +349,20 @@ bool MoveItTopp::convertTrajToMoveItTraj(robot_trajectory::RobotTrajectory& robo
 
     // Copy to robot state
     state.setJointGroupPositions(jmg_, position);
+    // state.setJointGroupVelocities(jmg_, velocity);
+    // state.setJointGroupAccelerations(jmg_, acceleration);
 
     const std::vector<const moveit::core::JointModel*> jointModels = jmg_->getJointModels();
 
     for (std::size_t i = 0; i < jointModels.size(); i++){
-    	state.setJointVelocities(jointModels[i], &velocity[i]);
+      state.setJointVelocities(jointModels[i], &velocity[i]);
     }
-//    state.setJointGroupVelocities(jmg_, velocity);
-//    state.setJointGroupAccelerations(jmg_, acceleration);
 
     // Add state to trajectory
     robot_traj.addSuffixWayPoint(state, dt);
   }
+
+  ROS_INFO_STREAM_NAMED(name_, "waypoint count: " << robot_traj.getWayPointCount());
 
   return true;
 }
