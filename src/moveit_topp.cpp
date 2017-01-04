@@ -63,9 +63,10 @@ MoveItTopp::MoveItTopp(const ros::NodeHandle &nh, const moveit::core::JointModel
     // TODO(rbbg) have to account for scaling factor
     if (bound.acceleration_bounded_)
       acc_limits.push_back(bound.max_acceleration_);
-    else
+    else {
       ROS_WARN_STREAM_NAMED(name_, "No acceleration limit specfied, using 1.0");
       acc_limits.push_back(1.0);
+    }
 
     // std::cout << "bound.max_velocity_: " << bound.max_velocity_ << std::endl;
     // std::cout << "bound.max_acceleration_: " << bound.max_acceleration_ << std::endl;
